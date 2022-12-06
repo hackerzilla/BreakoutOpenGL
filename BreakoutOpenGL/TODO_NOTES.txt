@@ -1,0 +1,7 @@
+TODO:
+1. Create new Visual Solution *DONE*
+2. Import dependencies into project 
+2a. Import SDL2 *DONE*
+2b. Import glew (openGL function library)
+3. Figure out how to initialize an OpenGL context with SDL
+4. ....
