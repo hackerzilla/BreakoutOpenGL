@@ -12,6 +12,7 @@
 
 #include <iostream>
 
+
 int main(int argc, char* argv[])
 {
 	// The window... into your soul.
@@ -66,6 +67,11 @@ int main(int argc, char* argv[])
 
 	std::cout << std::endl << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 
+	/* Create OpenGL Data */
+	// Create and compile shader
+	// Create vertex array object
+	// Create index buffer 
+
 
 	/* -------------------------------------  Game Loop ------------------------------------------------*/
 
@@ -74,6 +80,7 @@ int main(int argc, char* argv[])
 
 	while (gameIsRunning) 
 	{
+		/* Input Handling */
 		while (SDL_PollEvent(&inputEvent))
 		{
 			if (inputEvent.type == SDL_KEYDOWN)
@@ -85,6 +92,21 @@ int main(int argc, char* argv[])
 				}
 			}
 		}
+
+		/* OpenGL Drawing */
+		// Draw a Triangle
+		// Wipe the screen to a solid color
+		glClear(GL_COLOR_BUFFER_BIT);
+		GLenum errorCode = glGetError();
+		if (errorCode != GL_NO_ERROR)
+		{
+			std::cout << "glClear(GL_COLOR_BUFFER_BIT) failed!\nError code: " << errorCode << std::endl;
+		}
+		// bind shader 
+		// bind vertex array 
+		// bind index buffer
+		// draw elements
+		// glDrawElements(GL_TRIANGLES, count, type, indices);
 	}
 
 	std::cout << "Quitting application." << std::endl;
