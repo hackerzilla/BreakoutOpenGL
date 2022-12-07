@@ -1,7 +1,10 @@
 TODO:
-1. Create new Visual Solution *DONE*
-2. Import dependencies into project 
-2a. Import SDL2 *DONE*
-2b. Import glew  *DONE*
-3. Figure out how to initialize an OpenGL context with SDL *in progress*
-4. ....
+1. *DONE* Create new Visual Solution *DONE*
+2. *DONE* Import dependencies into project *DONE*
+2a. *DONE* Import SDL2 *DONE*
+2b. *DONE* Import glew  *DONE*
+3. *DONE* Figure out how to initialize an OpenGL context with SDL *DONE*
+4. *DONE* Get basic input handling working *DONE*
+5. Draw a triangle on the screen 
+6. Let the player move the triangle up/down/left/right using WASD or Arrow Keys 
+7. ......
