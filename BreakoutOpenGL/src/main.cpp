@@ -1,38 +1,94 @@
 /*
 	Welcome to my Breakout clone!
-*/
+	Dependencies: 
+	glew
+	sdl2
 
-// SDL2 - Windowing, Input
-#include "SDL.h"
+*/
 // glew - OpenGL function fetching 
 #include <GL/glew.h>
+// SDL2 - Windowing, Input
+#include "SDL.h"
+
 #include <iostream>
 
-int main(int argc, char* argv[]) 
+int main(int argc, char* argv[])
 {
-	// Init SDL!
-	SDL_Init(SDL_INIT_EVERYTHING);
-
 	// The window... into your soul.
 	SDL_Window* window;
 	window = SDL_CreateWindow("Breakout!",
 		SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED,
-		600, 600,
-		SDL_WINDOW_SHOWN);
+		1280, 720,
+		SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL); // tell SDL to initialize the window to work with open gl!
+	if (window == NULL) {
+		std::cout << "SDL_CreateWindow() failed. Window is NULL. \n Error Message: " << SDL_GetError() << std::endl;
+	}
 
 	// Context is key.
-	SDL_GLContext SDL_GL_CreateContext(window);
-		
+	SDL_GLContext context = SDL_GL_CreateContext(window);
 
-	GLenum result = glewInit();
-	if (result != GLEW_OK)
-	{
-		std::cout << "Error! glewInit() != GLEW_OK ... glew failed to initialize? : " << result << std::endl;
+	if (context == NULL) {
+		std::cout << "SDL_GL_CreateContext failed. Context is null. \nError Message: " << SDL_GetError() << std::endl;
+		std::cout << "Aborting program." << std::endl;
+		return -1;
 	}
-	
-	//std::cout << std::endl << glGetString(GL_VERSION) << std::endl;
 
-	std::cout << "Hello world!" << std::endl;
+	// Make the context current.
+	int makeContextCurrentSuccess = SDL_GL_MakeCurrent(window, context);
+	if (makeContextCurrentSuccess != 0)
+	{
+		std::cout << "Error! SDL_GL_MakeCurrent() returned code " << makeContextCurrentSuccess << std::endl;
+		std::cout << "Error message: " << std::endl << SDL_GetError() << std::endl;
+		SDL_ClearError();
+	}
+
+	// Tell SDL to use OpenGL version 3.3 and the Core profile features only.
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+	// Init SDL!
+	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
+	{
+		std::cout << "SDL_Init(SDL_INIT_EVERYTHING) Failed! \n Error message: " << SDL_GetError() << std::endl;
+		return -1;
+	}
+
+	// Initialize glew (fetches OpenGL function pointers from GPU drivers)
+	GLenum glewInitSuccess = glewInit();
+	if (glewInitSuccess != GLEW_OK)
+	{
+		std::cout << "Error! glewInit() failed with code " << glewInitSuccess << std::endl;
+		std::cout << "Error message: " << std::endl << SDL_GetError() << std::endl;
+		SDL_ClearError();
+	}
+
+	std::cout << std::endl << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+
+
+	/* -------------------------------------  Game Loop ------------------------------------------------*/
+
+	bool gameIsRunning{ true };
+	SDL_Event inputEvent;
+
+	while (gameIsRunning) 
+	{
+		while (SDL_PollEvent(&inputEvent))
+		{
+			if (inputEvent.type == SDL_KEYDOWN)
+			{
+				if (inputEvent.key.keysym.sym == SDLK_ESCAPE)
+				{
+					std::cout << "Player pressed esc. Exitting game loop" << std::endl;
+					gameIsRunning = false;
+				}
+			}
+		}
+	}
+
+	std::cout << "Quitting application." << std::endl;
+	SDL_Quit();
+
 	return 0;
 }
