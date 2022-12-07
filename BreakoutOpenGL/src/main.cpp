@@ -15,6 +15,17 @@
 
 int main(int argc, char* argv[])
 {
+	// Tell SDL to use OpenGL version 3.3 and the Core profile features only.
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetSwapInterval(1);
+
 	// The window... into your soul.
 	SDL_Window* window;
 	window = SDL_CreateWindow("Breakout!",
@@ -23,7 +34,16 @@ int main(int argc, char* argv[])
 		1280, 720,
 		SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL); // tell SDL to initialize the window to work with open gl!
 	if (window == NULL) {
-		std::cout << "SDL_CreateWindow() failed. Window is NULL. \n Error Message: " << SDL_GetError() << std::endl;
+		std::cout << "SDL_CreateWindow() failed. Window is null. \nError Message: " << SDL_GetError() << std::endl;
+		std::cout << "Aborting program." << std::endl;
+		return -1;
+	}
+
+	SDL_Renderer* renderer{ SDL_CreateRenderer(window, -1, 0) };
+	if (renderer == NULL) {
+		std::cout << "SDL_CreateRenderer() failed. Renderer is null.\nError Message: " << SDL_GetError() << std::endl;
+		std::cout << "Aborting program." << std::endl;
+		return -1;
 	}
 
 	// Context is key.
@@ -44,11 +64,6 @@ int main(int argc, char* argv[])
 		SDL_ClearError();
 	}
 
-	// Tell SDL to use OpenGL version 3.3 and the Core profile features only.
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
 	// Init SDL!
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
 	{
@@ -65,19 +80,94 @@ int main(int argc, char* argv[])
 		SDL_ClearError();
 	}
 
-	std::cout << std::endl << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+	std::string openGLVersionHeader{
+		"--------------OpenGL Version-------------------"
+	};
+	std::cout << openGLVersionHeader << std::endl << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 
-	/* Create OpenGL Data */
-	// Create and compile shader
+	/* --------------------------------- Get Misc. SDL Data ------------------------------------------- */
+	// Print battery info to console
+	std::string batteryHeader{
+		"--------------Battery Info-------------------"
+	};
+	std::cout << batteryHeader << std::endl;
+	int seconds, percent;
+	SDL_PowerState powerState = SDL_GetPowerInfo(&seconds, &percent);
+	std::cout << "Battery state: ";
+	switch (powerState)
+	{
+	case SDL_POWERSTATE_UNKNOWN:
+		std::cout << "unkown";
+		break;
+	case SDL_POWERSTATE_ON_BATTERY:
+		std::cout << "on battery";
+		break;
+	case SDL_POWERSTATE_NO_BATTERY:
+		std::cout << "no battery";
+		break;
+	case SDL_POWERSTATE_CHARGING:
+		std::cout << "charging";
+		break;
+	case SDL_POWERSTATE_CHARGED:
+		std::cout << "fully charged";
+		break;
+	default:
+		break;
+	}
+	std::cout << std::endl;
+	std::cout << "Power on for " << seconds << " seconds (" << percent << "%)" << std::endl;
+
+	/* --------------------------------- Create OpenGL Data ------------------------------------------- */
+	// Create and compile shader 
+	// Vertex shader produces vertices that will be used to draw a triangle (hard-coded)
+	static const GLchar* vertexShaderSource[]{ 
+		"#version 330 core"
+		"void main(void)"
+		"{"
+		"    const vec4 vertices[3] = vec4[3](vec4(  0.25, -0.25,  0.5, 1.0),"
+		"                                     vec4( -0.25, -0.25,  0.5, 1.0),"
+		"                                     vec4(  0.25,  0.25,  0.5, 1.0));"
+		"    gl_Position = vertices[gl_VertexID];"
+		"}"
+	};
+	static const GLchar* fragmentShaderSource[]{
+		"#version 330 core"
+		"out vec4 color;"
+		"void main(void) {"
+		"    color = vec4(0.0, 0.0, 1.0, 1.0);"
+		"}"
+	};
+	// Create and compile vertex shader
+	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShader, 1, vertexShaderSource, NULL);
+	glCompileShader(vertexShader);
+	
+	// Create and compile fragment shader
+	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, fragmentShaderSource, NULL);
+	glCompileShader(fragmentShader);
+
+	// Create program, attach shaders to it and link
+	GLuint program = glCreateProgram();
+	glAttachShader(program, vertexShader);
+	glAttachShader(program, fragmentShader);
+	glLinkProgram(program);
+
+	// Delete the now uneccessary shaders
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+
 	// Create vertex array object
 	// Create index buffer 
 
 
-	/* -------------------------------------  Game Loop ------------------------------------------------*/
+	/* -------------------------------------  Game Loop ----------------------------------------------- */
 
 	bool gameIsRunning{ true };
 	SDL_Event inputEvent;
 
+	// Temporary
+	static const GLfloat color[] = { 0.3f, 0.7f, 1.0f, 1.0f };
 	while (gameIsRunning) 
 	{
 		/* Input Handling */
@@ -91,25 +181,33 @@ int main(int argc, char* argv[])
 					gameIsRunning = false;
 				}
 			}
+			else if (inputEvent.type == SDL_QUIT)
+			{
+				gameIsRunning = false;
+			}
 		}
 
 		/* OpenGL Drawing */
 		// Draw a Triangle
 		// Wipe the screen to a solid color
-		glClear(GL_COLOR_BUFFER_BIT);
-		GLenum errorCode = glGetError();
-		if (errorCode != GL_NO_ERROR)
+		glClearBufferfv(GL_COLOR, 0, color);
+		SDL_GL_SwapWindow(window); // IT TOOK 3 HOURS TO WRITE THIS LINE OF CODE, THEREFORE FIXING MY CODE!!!
+
+		//GLenum errorCode = glGetError();
+		//if (errorCode != GL_NO_ERROR)
 		{
-			std::cout << "glClear(GL_COLOR_BUFFER_BIT) failed!\nError code: " << errorCode << std::endl;
+			//std::cout << "glClear(GL_COLOR_BUFFER_BIT) failed!\nError code: " << errorCode << std::endl;
 		}
 		// bind shader 
 		// bind vertex array 
 		// bind index buffer
 		// draw elements
 		// glDrawElements(GL_TRIANGLES, count, type, indices);
+
+		// WHY IS AN EXCEPTION BEING THROWN HERE??
 	}
 
-	std::cout << "Quitting application." << std::endl;
+	std::cout << "---------------Quitting application.------------------" << std::endl;
 	SDL_Quit();
 
 	return 0;
