@@ -10,10 +10,10 @@ TODO:
 The last 2 steps took about 3 because I kept having an exception thrown being caused by 
 my call to glClearBufferfv(). I needed to call SDL_GL_SwapWindow() so that it would work :/
 7. Draw a triangle on the screen 
-7a. Create the open GL data
-7b. Create shader
-7c. Create vertex array object
-7d. Create index buffer object
+7a. Create shader
+7b. Create vertex array object
 8b. Put code to clear screen and draw data every frame
 9. Let the player move the triangle up/down/left/right using WASD or Arrow Keys 
+9a. Import the glm math library to use for matrix transformations
+9b. Have the direction input detection (move(direction)) alter the translation matrix.
 10. Refactor? 

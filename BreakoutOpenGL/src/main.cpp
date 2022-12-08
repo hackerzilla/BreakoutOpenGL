@@ -10,8 +10,11 @@
 // SDL2 - Windowing, Input
 #include "SDL.h"
 
+// Standar Library
+#include <cmath>
 #include <iostream>
 
+void CheckForAndPrintGLError(std::string functionName);
 
 int main(int argc, char* argv[])
 {
@@ -140,25 +143,37 @@ int main(int argc, char* argv[])
 	// Create and compile vertex shader
 	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertexShader, 1, vertexShaderSource, NULL);
+	CheckForAndPrintGLError("vertex shader source");
 	glCompileShader(vertexShader);
+	CheckForAndPrintGLError("compile vertex shader");
 	
 	// Create and compile fragment shader
 	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragmentShader, 1, fragmentShaderSource, NULL);
+	CheckForAndPrintGLError("frag shader source");
 	glCompileShader(fragmentShader);
+	CheckForAndPrintGLError("compile frag shader");
 
 	// Create program, attach shaders to it and link
 	GLuint program = glCreateProgram();
+	CheckForAndPrintGLError("create shader program");
 	glAttachShader(program, vertexShader);
+	CheckForAndPrintGLError("attach vertex shader");
 	glAttachShader(program, fragmentShader);
+	CheckForAndPrintGLError("attach frag shader");
 	glLinkProgram(program);
+	CheckForAndPrintGLError("link shader program");
 
 	// Delete the now uneccessary shaders
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
 	// Create vertex array object
-	// Create index buffer 
+	GLuint vao;
+	glCreateVertexArrays(1, &vao);
+	CheckForAndPrintGLError("create vertex arrays");
+	glBindVertexArray(vao);
+	CheckForAndPrintGLError("bind vertex array");
 
 
 	/* -------------------------------------  Game Loop ----------------------------------------------- */
@@ -168,16 +183,16 @@ int main(int argc, char* argv[])
 	Uint64 performanceCounter{ SDL_GetPerformanceCounter() };
 	Uint64 frequency = SDL_GetPerformanceFrequency();
 	double timeDifference;
-	std::cout << "Performance counter frequency: " << frequency << std::endl;
+	//std::cout << "Performance counter frequency: " << frequency << std::endl;
 
-	// Temporary
-	static const GLfloat color[] = { 0.3f, 0.7f, 1.0f, 1.0f };
+	// The background (clear) color 
+	GLfloat color[] = { 0.3f, 0.7f, 1.0f, 1.0f };
 	while (gameIsRunning) 
 	{
 		Uint64 newPerformanceCounter = SDL_GetPerformanceCounter();
 		timeDifference = (newPerformanceCounter - performanceCounter) / (double) frequency;
 		performanceCounter = newPerformanceCounter;
-		std::cout << "Time differene: " << timeDifference << std::endl;
+		//std::cout << "Time differene: " << timeDifference << std::endl;
 
 		/* Input Handling */
 		while (SDL_PollEvent(&inputEvent))
@@ -221,10 +236,19 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		/* OpenGL Drawing */
-		// Draw a Triangle
+		// Change the clear color
+		// color[0] = (float)std::sin(color[0] + timeDifference);
+		color[2] = (float) std::sin(performanceCounter / (float) frequency) * 0.5 + 0.5;
+		color[1] = (float) std::cos(performanceCounter / (float) frequency) * 0.5 + 0.5;
+
+		/* OpenGL Rendering */
 		// Wipe the screen to a solid color
 		glClearBufferfv(GL_COLOR, 0, color);
+		// Bind our shader program
+		glUseProgram(program);
+		// Draw a Triangle
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+		// Swap window buffers 
 		SDL_GL_SwapWindow(window); // IT TOOK 3 HOURS TO WRITE THIS LINE OF CODE, THEREFORE FIXING MY CODE!!!
 
 		//GLenum errorCode = glGetError();
@@ -241,7 +265,20 @@ int main(int argc, char* argv[])
 	}
 
 	std::cout << "---------------Quitting application.------------------" << std::endl;
+	// Cleanup
+	glBindVertexArray(0);
+	glDeleteVertexArrays(1, &vao);
+	glDeleteProgram(program);
 	SDL_Quit();
 
 	return 0;
+}
+
+void CheckForAndPrintGLError(std::string functionName)
+{
+	GLenum error = glGetError();
+	if (error != GL_NO_ERROR)
+	{
+		std::cout << "OpenGL error in function " << functionName << " with error code: " << error << std::endl;
+	}
 }
