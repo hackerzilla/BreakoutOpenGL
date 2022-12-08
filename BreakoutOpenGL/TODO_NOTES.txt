@@ -5,6 +5,15 @@ TODO:
 2b. *DONE* Import glew  *DONE*
 3. *DONE* Figure out how to initialize an OpenGL context with SDL *DONE*
 4. *DONE* Get basic input handling working *DONE*
-5. Draw a triangle on the screen 
-6. Let the player move the triangle up/down/left/right using WASD or Arrow Keys 
-7. ......
+5. *DONE*Create an SDL renderer *DONE*
+6. *DONE* Clear the screen to a solid color. *DONE* 
+The last 2 steps took about 3 because I kept having an exception thrown being caused by 
+my call to glClearBufferfv(). I needed to call SDL_GL_SwapWindow() so that it would work :/
+7. Draw a triangle on the screen 
+7a. Create the open GL data
+7b. Create shader
+7c. Create vertex array object
+7d. Create index buffer object
+8b. Put code to clear screen and draw data every frame
+9. Let the player move the triangle up/down/left/right using WASD or Arrow Keys 
+10. Refactor? 

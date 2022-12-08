@@ -165,20 +165,54 @@ int main(int argc, char* argv[])
 
 	bool gameIsRunning{ true };
 	SDL_Event inputEvent;
+	Uint64 performanceCounter{ SDL_GetPerformanceCounter() };
+	Uint64 frequency = SDL_GetPerformanceFrequency();
+	double timeDifference;
+	std::cout << "Performance counter frequency: " << frequency << std::endl;
 
 	// Temporary
 	static const GLfloat color[] = { 0.3f, 0.7f, 1.0f, 1.0f };
 	while (gameIsRunning) 
 	{
+		Uint64 newPerformanceCounter = SDL_GetPerformanceCounter();
+		timeDifference = (newPerformanceCounter - performanceCounter) / (double) frequency;
+		performanceCounter = newPerformanceCounter;
+		std::cout << "Time differene: " << timeDifference << std::endl;
+
 		/* Input Handling */
 		while (SDL_PollEvent(&inputEvent))
 		{
 			if (inputEvent.type == SDL_KEYDOWN)
 			{
-				if (inputEvent.key.keysym.sym == SDLK_ESCAPE)
+				switch (inputEvent.key.keysym.sym)
 				{
+				case SDLK_ESCAPE:
 					std::cout << "Player pressed esc. Exitting game loop" << std::endl;
 					gameIsRunning = false;
+					break;
+				case SDLK_LEFT:
+				case SDLK_a:
+					std::cout << "Move left" << std::endl;
+					// move(dir::LEFT);
+					break;
+				case SDLK_RIGHT:
+				case SDLK_d:
+					std::cout << "Move right" << std::endl;
+					// move(dir::RIGHT);
+					break;
+				case SDLK_UP:
+				case SDLK_w:
+					std::cout << "Move up" << std::endl;
+					// move(dir::UP);	
+					break;
+				case SDLK_DOWN:
+				case SDLK_s:
+					std::cout << "Move down" << std::endl;
+					// move(dir::DOWN);
+					break;
+				default:
+					// Key input behavior undefined
+					break;
 				}
 			}
 			else if (inputEvent.type == SDL_QUIT)
@@ -204,7 +238,6 @@ int main(int argc, char* argv[])
 		// draw elements
 		// glDrawElements(GL_TRIANGLES, count, type, indices);
 
-		// WHY IS AN EXCEPTION BEING THROWN HERE??
 	}
 
 	std::cout << "---------------Quitting application.------------------" << std::endl;
