@@ -13,6 +13,7 @@
 // Standar Library
 #include <cmath>
 #include <iostream>
+#include <vector>
 
 void CheckForAndPrintGLError(std::string functionName);
 
@@ -124,17 +125,15 @@ int main(int argc, char* argv[])
 	// Create and compile shader 
 	// Vertex shader produces vertices that will be used to draw a triangle (hard-coded)
 	static const GLchar* vertexShaderSource[]{ 
-		"#version 330 core"
+		"#version 330 core\n"
+		"layout(location = 0) in vec4 vertices[3];"
 		"void main(void)"
 		"{"
-		"    const vec4 vertices[3] = vec4[3](vec4(  0.25, -0.25,  0.5, 1.0),"
-		"                                     vec4( -0.25, -0.25,  0.5, 1.0),"
-		"                                     vec4(  0.25,  0.25,  0.5, 1.0));"
-		"    gl_Position = vertices[gl_VertexID];"
+		"gl_Position = vertices[gl_VertexID];"
 		"}"
 	};
 	static const GLchar* fragmentShaderSource[]{
-		"#version 330 core"
+		"#version 330 core\n"
 		"out vec4 color;"
 		"void main(void) {"
 		"    color = vec4(0.0, 0.0, 1.0, 1.0);"
@@ -143,9 +142,24 @@ int main(int argc, char* argv[])
 	// Create and compile vertex shader
 	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertexShader, 1, vertexShaderSource, NULL);
-	CheckForAndPrintGLError("vertex shader source");
 	glCompileShader(vertexShader);
-	CheckForAndPrintGLError("compile vertex shader");
+	// Check if shader compiled correctly
+	GLint success = 0;
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+	if (success == GL_FALSE)
+	{
+		std::cout << "Vertex shader compilation failed!" << std::endl;
+		GLint logSize = 0;
+		glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &logSize);
+		std::vector<GLchar> infoLog(logSize);
+		glGetShaderInfoLog(vertexShader, logSize, NULL, &infoLog[0]);
+		std::cout << "Error log: ";
+		for (GLchar c : infoLog)
+		{
+			std::cout << c;
+		}
+		std::cout <<  std::endl;
+	}
 	
 	// Create and compile fragment shader
 	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -184,9 +198,10 @@ int main(int argc, char* argv[])
 	Uint64 frequency = SDL_GetPerformanceFrequency();
 	double timeDifference;
 	//std::cout << "Performance counter frequency: " << frequency << std::endl;
+	float dx{ 0 }, dy{ 0 };
 
 	// The background (clear) color 
-	GLfloat color[] = { 0.3f, 0.7f, 1.0f, 1.0f };
+	GLfloat color[] = { 0.3f, 0.5f, 1.0f, 1.0f };
 	while (gameIsRunning) 
 	{
 		Uint64 newPerformanceCounter = SDL_GetPerformanceCounter();
@@ -208,21 +223,25 @@ int main(int argc, char* argv[])
 				case SDLK_LEFT:
 				case SDLK_a:
 					std::cout << "Move left" << std::endl;
+					dx -= 0.1;
 					// move(dir::LEFT);
 					break;
 				case SDLK_RIGHT:
 				case SDLK_d:
 					std::cout << "Move right" << std::endl;
+					dx += 0.1;
 					// move(dir::RIGHT);
 					break;
 				case SDLK_UP:
 				case SDLK_w:
 					std::cout << "Move up" << std::endl;
+					dy -= 0.1;
 					// move(dir::UP);	
 					break;
 				case SDLK_DOWN:
 				case SDLK_s:
 					std::cout << "Move down" << std::endl;
+					dy += 0.1;
 					// move(dir::DOWN);
 					break;
 				default:
@@ -235,11 +254,16 @@ int main(int argc, char* argv[])
 				gameIsRunning = false;
 			}
 		}
-
+		
+		/* ---------------------Update simulation----------------------*/
 		// Change the clear color
 		// color[0] = (float)std::sin(color[0] + timeDifference);
-		color[2] = (float) std::sin(performanceCounter / (float) frequency) * 0.5 + 0.5;
-		color[1] = (float) std::cos(performanceCounter / (float) frequency) * 0.5 + 0.5;
+		color[0] = (float) std::sin(performanceCounter / (float) frequency) * 0.5 + 0.5;
+		color[2] = (float) std::cos(performanceCounter / (float) frequency) * 0.5 + 0.5;
+					
+					
+		//glUniform4fv(0, 3, );
+		//CheckForAndPrintGLError("setting uniform");
 
 		/* OpenGL Rendering */
 		// Wipe the screen to a solid color
@@ -256,12 +280,6 @@ int main(int argc, char* argv[])
 		{
 			//std::cout << "glClear(GL_COLOR_BUFFER_BIT) failed!\nError code: " << errorCode << std::endl;
 		}
-		// bind shader 
-		// bind vertex array 
-		// bind index buffer
-		// draw elements
-		// glDrawElements(GL_TRIANGLES, count, type, indices);
-
 	}
 
 	std::cout << "---------------Quitting application.------------------" << std::endl;
