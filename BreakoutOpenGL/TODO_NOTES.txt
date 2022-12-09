@@ -9,11 +9,13 @@ TODO:
 6. *DONE* Clear the screen to a solid color. *DONE* 
 The last 2 steps took about 3 because I kept having an exception thrown being caused by 
 my call to glClearBufferfv(). I needed to call SDL_GL_SwapWindow() so that it would work :/
-7. Draw a triangle on the screen 
-7a. Create shader
-7b. Create vertex array object
-8b. Put code to clear screen and draw data every frame
-9. Let the player move the triangle up/down/left/right using WASD or Arrow Keys 
-9a. Import the glm math library to use for matrix transformations
-9b. Have the direction input detection (move(direction)) alter the translation matrix.
-10. Refactor? 
+7. *DONE* Draw a triangle on the screen *DONE* 
+7a. *DONE* Create shader *DONE*
+7b. *DONE* Create vertex array object *DONE*
+8b. *DONE* Put code to clear screen and draw data every frame *DONE*
+9. *DONE* Let the player move the triangle up/down/left/right using WASD or Arrow Keys *DONE*
+9a. *DONE* Have the direction input detection (move(direction)) alter the triangle's position. *DONE*
+10. Make a "paddle" or rectangle at the bottom of screen that player can move.
+11. Create a sphere / ball shape 
+12. Animate the ball moving around the screen with an initial velocity
+13. Add collision detection so that the ball bounces around the screen.

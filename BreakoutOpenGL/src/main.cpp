@@ -126,10 +126,13 @@ int main(int argc, char* argv[])
 	// Vertex shader produces vertices that will be used to draw a triangle (hard-coded)
 	static const GLchar* vertexShaderSource[]{ 
 		"#version 330 core\n"
-		"layout(location = 0) in vec4 vertices[3];"
+		"layout (location = 0) in vec4 offset;"
 		"void main(void)"
 		"{"
-		"gl_Position = vertices[gl_VertexID];"
+		"const vec4 vertices[] = vec4[](vec4( 0.25, -0.25, 0.5, 1.0),"
+		"                               vec4(-0.25, -0.25, 0.5, 1.0),"
+		"                               vec4( 0.25,  0.25, 0.5, 1.0));"
+		"gl_Position = vertices[gl_VertexID] + offset;"
 		"}"
 	};
 	static const GLchar* fragmentShaderSource[]{
@@ -198,7 +201,9 @@ int main(int argc, char* argv[])
 	Uint64 frequency = SDL_GetPerformanceFrequency();
 	double timeDifference;
 	//std::cout << "Performance counter frequency: " << frequency << std::endl;
-	float dx{ 0 }, dy{ 0 };
+	// offset vector
+	GLfloat offset[4]{ 0.0f, 0.0f, 0.0f, 0.0f };
+	float speed = 10.0f; // speed at which triangle moves
 
 	// The background (clear) color 
 	GLfloat color[] = { 0.3f, 0.5f, 1.0f, 1.0f };
@@ -222,27 +227,23 @@ int main(int argc, char* argv[])
 					break;
 				case SDLK_LEFT:
 				case SDLK_a:
-					std::cout << "Move left" << std::endl;
-					dx -= 0.1;
 					// move(dir::LEFT);
+					offset[0] -= timeDifference * speed;
 					break;
 				case SDLK_RIGHT:
 				case SDLK_d:
-					std::cout << "Move right" << std::endl;
-					dx += 0.1;
 					// move(dir::RIGHT);
+					offset[0] += timeDifference * speed;
 					break;
 				case SDLK_UP:
 				case SDLK_w:
-					std::cout << "Move up" << std::endl;
-					dy -= 0.1;
+					offset[1] += timeDifference * speed;
 					// move(dir::UP);	
 					break;
 				case SDLK_DOWN:
 				case SDLK_s:
-					std::cout << "Move down" << std::endl;
-					dy += 0.1;
 					// move(dir::DOWN);
+					offset[1] -= timeDifference * speed;
 					break;
 				default:
 					// Key input behavior undefined
@@ -260,7 +261,8 @@ int main(int argc, char* argv[])
 		// color[0] = (float)std::sin(color[0] + timeDifference);
 		color[0] = (float) std::sin(performanceCounter / (float) frequency) * 0.5 + 0.5;
 		color[2] = (float) std::cos(performanceCounter / (float) frequency) * 0.5 + 0.5;
-					
+		
+		glVertexAttrib4fv(0, offset);
 					
 		//glUniform4fv(0, 3, );
 		//CheckForAndPrintGLError("setting uniform");
