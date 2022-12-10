@@ -129,10 +129,13 @@ int main(int argc, char* argv[])
 		"layout (location = 0) in vec4 offset;"
 		"void main(void)"
 		"{"
-		"const vec4 vertices[] = vec4[](vec4( 0.25, -0.25, 0.5, 1.0),"
-		"                               vec4(-0.25, -0.25, 0.5, 1.0),"
-		"                               vec4( 0.25,  0.25, 0.5, 1.0));"
-		"gl_Position = vertices[gl_VertexID] + offset;"
+		"const vec4 paddleVertices[] = vec4[](vec4(-0.20, -0.9, 0.5, 1.0),"
+		"                                     vec4( 0.20, -0.9, 0.5, 1.0),"
+		"                                     vec4( 0.20, -0.8, 0.5, 1.0),"
+		"                                     vec4( 0.20, -0.8, 0.5, 1.0),"
+		"                                     vec4(-0.20, -0.9, 0.5, 1.0),"
+		"                                     vec4(-0.20, -0.8, 0.5, 1.0));"
+		"gl_Position = paddleVertices[gl_VertexID] + offset;"
 		"}"
 	};
 	static const GLchar* fragmentShaderSource[]{
@@ -201,12 +204,13 @@ int main(int argc, char* argv[])
 	Uint64 frequency = SDL_GetPerformanceFrequency();
 	double timeDifference;
 	//std::cout << "Performance counter frequency: " << frequency << std::endl;
-	// offset vector
+	// offset vector for the paddle	
 	GLfloat offset[4]{ 0.0f, 0.0f, 0.0f, 0.0f };
-	float speed = 10.0f; // speed at which triangle moves
+	GLfloat paddleColor[4]{ 0.5, 0.5, 0.5, 1.0 };
+	float speed = 20.0f; // speed at which the paddle moves
 
 	// The background (clear) color 
-	GLfloat color[] = { 0.3f, 0.5f, 1.0f, 1.0f };
+	GLfloat backgroundColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	while (gameIsRunning) 
 	{
 		Uint64 newPerformanceCounter = SDL_GetPerformanceCounter();
@@ -215,7 +219,8 @@ int main(int argc, char* argv[])
 		//std::cout << "Time differene: " << timeDifference << std::endl;
 
 		/* Input Handling */
-		while (SDL_PollEvent(&inputEvent))
+		//while (SDL_PollEvent(&inputEvent))
+		if (SDL_PollEvent(&inputEvent))
 		{
 			if (inputEvent.type == SDL_KEYDOWN)
 			{
@@ -259,8 +264,8 @@ int main(int argc, char* argv[])
 		/* ---------------------Update simulation----------------------*/
 		// Change the clear color
 		// color[0] = (float)std::sin(color[0] + timeDifference);
-		color[0] = (float) std::sin(performanceCounter / (float) frequency) * 0.5 + 0.5;
-		color[2] = (float) std::cos(performanceCounter / (float) frequency) * 0.5 + 0.5;
+		paddleColor[0] = (float) std::sin(performanceCounter / (float) frequency) * 0.5 + 0.5;
+		paddleColor[2] = (float) std::cos(performanceCounter / (float) frequency) * 0.5 + 0.5;
 		
 		glVertexAttrib4fv(0, offset);
 					
@@ -269,11 +274,11 @@ int main(int argc, char* argv[])
 
 		/* OpenGL Rendering */
 		// Wipe the screen to a solid color
-		glClearBufferfv(GL_COLOR, 0, color);
+		glClearBufferfv(GL_COLOR, 0, backgroundColor);
 		// Bind our shader program
 		glUseProgram(program);
 		// Draw a Triangle
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 		// Swap window buffers 
 		SDL_GL_SwapWindow(window); // IT TOOK 3 HOURS TO WRITE THIS LINE OF CODE, THEREFORE FIXING MY CODE!!!
 
