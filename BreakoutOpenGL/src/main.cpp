@@ -17,6 +17,8 @@
 
 void CheckForAndPrintGLError(std::string functionName);
 
+GLint createShaderProgram(const GLchar** vertexShaderSource, const GLchar** fragmentShaderSource);
+
 int main(int argc, char* argv[])
 {
 	// Tell SDL to use OpenGL version 3.3 and the Core profile features only.
@@ -124,7 +126,11 @@ int main(int argc, char* argv[])
 	/* --------------------------------- Create OpenGL Data ------------------------------------------- */
 	// Create and compile shader 
 	// Vertex shader produces vertices that will be used to draw a triangle (hard-coded)
-	static const GLchar* vertexShaderSource[]{ 
+	
+	// FOR THE BALL
+			
+	// FOR THE PADDLE
+	static const GLchar* paddleVertexShaderSource[]{ 
 		"#version 330 core\n"
 		"layout (location = 0) in vec4 offset;"
 		"layout (location = 1) in vec4 color;"
@@ -137,11 +143,12 @@ int main(int argc, char* argv[])
 		"                                     vec4( 0.20, -0.8, 0.5, 1.0),"
 		"                                     vec4(-0.20, -0.9, 0.5, 1.0),"
 		"                                     vec4(-0.20, -0.8, 0.5, 1.0));"
+		"const vec4 ballVertex = vec4(0.0, 0.0, 0.5, 1.0);"
 		"gl_Position = paddleVertices[gl_VertexID] + offset;"
 		"vs_color = color;"
 		"}"
 	};
-	static const GLchar* fragmentShaderSource[]{
+	static const GLchar* paddleFragmentShaderSource[]{
 		"#version 330 core\n"
 		"in vec4 vs_color;" // input from the vertex shader
 		"out vec4 color;" // output to the framebuffer
@@ -149,48 +156,7 @@ int main(int argc, char* argv[])
 		"    color = vs_color;"
 		"}"
 	};
-	// Create and compile vertex shader
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-	// Check if shader compiled correctly
-	GLint success = 0;
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if (success == GL_FALSE)
-	{
-		std::cout << "Vertex shader compilation failed!" << std::endl;
-		GLint logSize = 0;
-		glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &logSize);
-		std::vector<GLchar> infoLog(logSize);
-		glGetShaderInfoLog(vertexShader, logSize, NULL, &infoLog[0]);
-		std::cout << "Error log: ";
-		for (GLchar c : infoLog)
-		{
-			std::cout << c;
-		}
-		std::cout <<  std::endl;
-	}
-	
-	// Create and compile fragment shader
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, fragmentShaderSource, NULL);
-	CheckForAndPrintGLError("frag shader source");
-	glCompileShader(fragmentShader);
-	CheckForAndPrintGLError("compile frag shader");
-
-	// Create program, attach shaders to it and link
-	GLuint program = glCreateProgram();
-	CheckForAndPrintGLError("create shader program");
-	glAttachShader(program, vertexShader);
-	CheckForAndPrintGLError("attach vertex shader");
-	glAttachShader(program, fragmentShader);
-	CheckForAndPrintGLError("attach frag shader");
-	glLinkProgram(program);
-	CheckForAndPrintGLError("link shader program");
-
-	// Delete the now uneccessary shaders
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
+	GLint paddleShaderProgram = createShaderProgram(paddleVertexShaderSource, paddleFragmentShaderSource);
 
 	// Create vertex array object
 	GLuint vao;
@@ -218,6 +184,7 @@ int main(int argc, char* argv[])
 	GLfloat backgroundColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	while (gameIsRunning) 
 	{
+		// Timers  ....
 		Uint64 newPerformanceCounter = SDL_GetPerformanceCounter();
 		timeDifference = (newPerformanceCounter - performanceCounter) / (double) frequency;
 		performanceCounter = newPerformanceCounter;
@@ -273,12 +240,13 @@ int main(int argc, char* argv[])
 		glVertexAttrib4fv(0, offset);
 		glVertexAttrib4fv(1, paddleColor);
 
-		/* OpenGL Rendering */
+		/*-------------------OpenGL Rendering-------------------------*/
 		// Wipe the screen to a solid color
 		glClearBufferfv(GL_COLOR, 0, backgroundColor);
-		// Bind our shader program
-		glUseProgram(program);
-		// Draw a Triangle
+
+		// Bind our shader program for the paddle
+		glUseProgram(paddleShaderProgram);
+		// Draw Triangles
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		// Swap window buffers 
 		SDL_GL_SwapWindow(window); // IT TOOK 3 HOURS TO WRITE THIS LINE OF CODE, THEREFORE FIXING MY CODE!!!
@@ -288,7 +256,7 @@ int main(int argc, char* argv[])
 	// Cleanup
 	glBindVertexArray(0);
 	glDeleteVertexArrays(1, &vao);
-	glDeleteProgram(program);
+	glDeleteProgram(paddleShaderProgram);
 	SDL_Quit();
 
 	return 0;
@@ -301,4 +269,79 @@ void CheckForAndPrintGLError(std::string functionName)
 	{
 		std::cout << "OpenGL error in function " << functionName << " with error code: " << error << std::endl;
 	}
+}
+
+GLint createShaderProgram(const GLchar** vertexShaderSource, const GLchar** fragmentShaderSource) 
+{
+	// Create and compile vertex shader
+	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShader, 1, vertexShaderSource, NULL);
+	glCompileShader(vertexShader);
+
+	// Check if shader compiled correctly
+	GLint success = 0;
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+	if (success == GL_FALSE)
+	{
+		std::cout << "Vertex shader compilation failed!" << std::endl;
+		GLint logSize = 0;
+		glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &logSize);
+		std::vector<GLchar> infoLog(logSize);
+		glGetShaderInfoLog(vertexShader, logSize, NULL, &infoLog[0]);
+		std::cout << "Error log: ";
+		for (GLchar c : infoLog)
+		{
+			std::cout << c;
+		}
+		std::cout << std::endl;
+	}
+	else
+	{
+		std::cout << "Vertex shader compiled successfuly." << std::endl;
+	}
+
+	// Create and compile fragment shader
+	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, fragmentShaderSource, NULL);
+	CheckForAndPrintGLError("frag shader source");
+	glCompileShader(fragmentShader);
+	CheckForAndPrintGLError("compile frag shader");
+
+	// Check if shader compiled correctly
+	success = 0;
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+	if (success == GL_FALSE)
+	{
+		std::cout << "Fragment shader compilation failed!" << std::endl;
+		GLint logSize = 0;
+		glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &logSize);
+		std::vector<GLchar> infoLog(logSize);
+		glGetShaderInfoLog(vertexShader, logSize, NULL, &infoLog[0]);
+		std::cout << "Error log: ";
+		for (GLchar c : infoLog)
+		{
+			std::cout << c;
+		}
+		std::cout << std::endl;
+	}
+	else
+	{
+		std::cout << "Fragment shader compiled successfuly." << std::endl;
+	}
+
+	// Create program, attach shaders to it and link
+	GLuint program = glCreateProgram();
+	CheckForAndPrintGLError("create shader program");
+	glAttachShader(program, vertexShader);
+	CheckForAndPrintGLError("attach vertex shader");
+	glAttachShader(program, fragmentShader);
+	CheckForAndPrintGLError("attach frag shader");
+	glLinkProgram(program);
+	CheckForAndPrintGLError("link shader program");
+
+	// Delete the now uneccessary shaders
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+
+	return program;
 }
