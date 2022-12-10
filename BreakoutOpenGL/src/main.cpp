@@ -127,6 +127,8 @@ int main(int argc, char* argv[])
 	static const GLchar* vertexShaderSource[]{ 
 		"#version 330 core\n"
 		"layout (location = 0) in vec4 offset;"
+		"layout (location = 1) in vec4 color;"
+		"out vec4 vs_color;"
 		"void main(void)"
 		"{"
 		"const vec4 paddleVertices[] = vec4[](vec4(-0.20, -0.9, 0.5, 1.0),"
@@ -136,13 +138,15 @@ int main(int argc, char* argv[])
 		"                                     vec4(-0.20, -0.9, 0.5, 1.0),"
 		"                                     vec4(-0.20, -0.8, 0.5, 1.0));"
 		"gl_Position = paddleVertices[gl_VertexID] + offset;"
+		"vs_color = color;"
 		"}"
 	};
 	static const GLchar* fragmentShaderSource[]{
 		"#version 330 core\n"
-		"out vec4 color;"
+		"in vec4 vs_color;" // input from the vertex shader
+		"out vec4 color;" // output to the framebuffer
 		"void main(void) {"
-		"    color = vec4(0.0, 0.0, 1.0, 1.0);"
+		"    color = vs_color;"
 		"}"
 	};
 	// Create and compile vertex shader
@@ -204,10 +208,11 @@ int main(int argc, char* argv[])
 	Uint64 frequency = SDL_GetPerformanceFrequency();
 	double timeDifference;
 	//std::cout << "Performance counter frequency: " << frequency << std::endl;
+
 	// offset vector for the paddle	
 	GLfloat offset[4]{ 0.0f, 0.0f, 0.0f, 0.0f };
 	GLfloat paddleColor[4]{ 0.5, 0.5, 0.5, 1.0 };
-	float speed = 20.0f; // speed at which the paddle moves
+	float speed = 0.020f; // speed at which the paddle moves
 
 	// The background (clear) color 
 	GLfloat backgroundColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -233,16 +238,16 @@ int main(int argc, char* argv[])
 				case SDLK_LEFT:
 				case SDLK_a:
 					// move(dir::LEFT);
-					offset[0] -= timeDifference * speed;
+					offset[0] -= speed;
 					break;
 				case SDLK_RIGHT:
 				case SDLK_d:
 					// move(dir::RIGHT);
-					offset[0] += timeDifference * speed;
+					offset[0] += speed;
 					break;
 				case SDLK_UP:
 				case SDLK_w:
-					offset[1] += timeDifference * speed;
+					offset[1] += speed;
 					// move(dir::UP);	
 					break;
 				case SDLK_DOWN:
@@ -266,6 +271,7 @@ int main(int argc, char* argv[])
 		paddleColor[2] = (float) std::cos(performanceCounter / (float) frequency) * 0.5 + 0.5;
 		
 		glVertexAttrib4fv(0, offset);
+		glVertexAttrib4fv(1, paddleColor);
 
 		/* OpenGL Rendering */
 		// Wipe the screen to a solid color
