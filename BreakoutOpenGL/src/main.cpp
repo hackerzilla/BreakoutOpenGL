@@ -261,16 +261,11 @@ int main(int argc, char* argv[])
 			}
 		}
 		
-		/* ---------------------Update simulation----------------------*/
 		// Change the clear color
-		// color[0] = (float)std::sin(color[0] + timeDifference);
 		paddleColor[0] = (float) std::sin(performanceCounter / (float) frequency) * 0.5 + 0.5;
 		paddleColor[2] = (float) std::cos(performanceCounter / (float) frequency) * 0.5 + 0.5;
 		
 		glVertexAttrib4fv(0, offset);
-					
-		//glUniform4fv(0, 3, );
-		//CheckForAndPrintGLError("setting uniform");
 
 		/* OpenGL Rendering */
 		// Wipe the screen to a solid color
@@ -281,12 +276,6 @@ int main(int argc, char* argv[])
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		// Swap window buffers 
 		SDL_GL_SwapWindow(window); // IT TOOK 3 HOURS TO WRITE THIS LINE OF CODE, THEREFORE FIXING MY CODE!!!
-
-		//GLenum errorCode = glGetError();
-		//if (errorCode != GL_NO_ERROR)
-		{
-			//std::cout << "glClear(GL_COLOR_BUFFER_BIT) failed!\nError code: " << errorCode << std::endl;
-		}
 	}
 
 	std::cout << "---------------Quitting application.------------------" << std::endl;
