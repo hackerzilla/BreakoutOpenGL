@@ -9,6 +9,9 @@
 #include <GL/glew.h>
 // SDL2 - Windowing, Input
 #include "SDL.h"
+// glm - open gl math library
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 // Standar Library
 #include <cmath>
@@ -32,12 +35,14 @@ int main(int argc, char* argv[])
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetSwapInterval(1);
 
+	unsigned int width = 1280;
+	unsigned int height = 720;
 	// The window... into your soul.
 	SDL_Window* window;
 	window = SDL_CreateWindow("Breakout!",
 		SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED,
-		1280, 720,
+		width, height,
 		SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL); // tell SDL to initialize the window to work with open gl!
 	if (window == NULL) {
 		std::cout << "SDL_CreateWindow() failed. Window is null. \nError Message: " << SDL_GetError() << std::endl;
@@ -123,7 +128,7 @@ int main(int argc, char* argv[])
 	std::cout << std::endl;
 	std::cout << "Power on for " << seconds << " seconds (" << percent << "%)" << std::endl;
 
-	/* --------------------------------- Create OpenGL Data ------------------------------------------- */
+	/* --------------------------------- Create Shaders ------------------------------------------- */
 	// Create and compile shader 
 	// Vertex shader produces vertices that will be used to draw a triangle (hard-coded)
 	
@@ -165,15 +170,23 @@ int main(int argc, char* argv[])
 	glBindVertexArray(vao);
 	CheckForAndPrintGLError("bind vertex array");
 
+	/* ------------------------------------- Rendering Data ----------------------------------------------- */
+	// Next two lines are black magic from the Cherno OpenGL tutorial series
+	// Creating matrices to moddel the projection-view matrix model
 
-	/* -------------------------------------  Game Loop ----------------------------------------------- */
+	glm::mat4 proj = glm::ortho(0.0f, (float)width, 0.0f, (float)height, -1.0f, 1.0f);
+	glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 
-	bool gameIsRunning{ true };
 	SDL_Event inputEvent;
 	Uint64 performanceCounter{ SDL_GetPerformanceCounter() };
 	Uint64 frequency = SDL_GetPerformanceFrequency();
 	double timeDifference;
 	//std::cout << "Performance counter frequency: " << frequency << std::endl;
+
+	// The paddle's translation relative to the origin of the world space.
+	// The world space is (currently) equivalent to the window space
+	// So (0,0) in world space is the most bottom left pixel of the window
+	glm::vec3 translation = glm::vec3(0, 0, 0);
 
 	// offset vector for the paddle	
 	GLfloat offset[4]{ 0.0f, 0.0f, 0.0f, 0.0f };
@@ -182,6 +195,9 @@ int main(int argc, char* argv[])
 
 	// The background (clear) color 
 	GLfloat backgroundColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+	/* -------------------------------------  Game Loop ----------------------------------------------- */
+	bool gameIsRunning{ true };
 	while (gameIsRunning) 
 	{
 		// Timers  ....
@@ -220,7 +236,7 @@ int main(int argc, char* argv[])
 				case SDLK_DOWN:
 				case SDLK_s:
 					// move(dir::DOWN);
-					offset[1] -= timeDifference * speed;
+					offset[1] -= speed;
 					break;
 				default:
 					// Key input behavior undefined
@@ -233,10 +249,14 @@ int main(int argc, char* argv[])
 			}
 		}
 		
+		/* --------------------- Update the Simulation --------------------------*/
 		// Change the clear color
 		paddleColor[0] = (float) std::sin(performanceCounter / (float) frequency) * 0.5 + 0.5;
 		paddleColor[2] = (float) std::cos(performanceCounter / (float) frequency) * 0.5 + 0.5;
-		
+
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
+		glm::mat4 mvp = proj * view * model; 
+
 		glVertexAttrib4fv(0, offset);
 		glVertexAttrib4fv(1, paddleColor);
 
