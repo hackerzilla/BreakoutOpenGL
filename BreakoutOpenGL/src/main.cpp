@@ -22,6 +22,8 @@ void CheckForAndPrintGLError(std::string functionName);
 
 GLint createShaderProgram(const GLchar** vertexShaderSource, const GLchar** fragmentShaderSource);
 
+void PrintAllSupportedExtensions(void);
+
 int main(int argc, char* argv[])
 {
 	// Tell SDL to use OpenGL version 3.3 and the Core profile features only.
@@ -97,6 +99,7 @@ int main(int argc, char* argv[])
 	std::cout << openGLVersionHeader << std::endl << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 
 	/* --------------------------------- Get Misc. SDL Data ------------------------------------------- */
+	PrintAllSupportedExtensions();
 	// Print battery info to console
 	std::string batteryHeader{
 		"--------------Battery Info-------------------"
@@ -375,3 +378,20 @@ GLint createShaderProgram(const GLchar** vertexShaderSource, const GLchar** frag
 
 	return program;
 }
+
+void PrintAllSupportedExtensions(void)
+{
+	GLint count;
+	glGetIntegerv(GL_NUM_EXTENSIONS, &count);
+	std::cout << "---------Supported Extensions---------" << std::endl;
+	for (int i = 0; i < count; i++)
+	{
+		const GLubyte* string = glGetStringi(GL_EXTENSIONS, i);
+		std::cout << string << "\t";
+		if (i % 3 == 0)
+		{
+			std::cout << std::endl;
+		}
+	}
+}
+
