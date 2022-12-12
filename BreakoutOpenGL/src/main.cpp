@@ -158,7 +158,11 @@ int main(int argc, char* argv[])
 		"in vec4 vs_color;" // input from the vertex shader
 		"out vec4 color;" // output to the framebuffer
 		"void main(void) {"
-		"    color = vs_color;"
+		//"    color = vs_color;"
+		"    color = vec4(sin(gl_FragCoord.x * 0.25) * 0.5 + 0.5,"
+		"                 cos(gl_FragCoord.y * 0.25) * 0.5 + 0.5,"
+		"                 sin(gl_FragCoord.x * 0.15) * cos(gl_FragCoord.y * 0.15),"
+		"                 1.0);"
 		"}"
 	};
 	GLint paddleShaderProgram = createShaderProgram(paddleVertexShaderSource, paddleFragmentShaderSource);
