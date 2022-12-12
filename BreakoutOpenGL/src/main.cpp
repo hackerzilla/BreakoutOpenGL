@@ -148,9 +148,15 @@ int main(int argc, char* argv[])
 		"                                     vec4( 0.20, -0.8, 0.5, 1.0),"
 		"                                     vec4(-0.20, -0.9, 0.5, 1.0),"
 		"                                     vec4(-0.20, -0.8, 0.5, 1.0));"
+	    "const vec4 paddleColors[]   = vec4[](vec4( 1.0,   0.0, 0.0, 1.0),"
+		"                                     vec4( 0.0,   1.0, 0.0, 1.0),"
+		"                                     vec4( 0.0,   0.0, 1.0, 1.0),"
+		"                                     vec4( 1.0,   0.0, 0.0, 1.0),"
+		"                                     vec4( 0.0,   1.0, 0.0, 1.0),"
+		"                                     vec4( 0.0,   0.0, 1.0, 1.0));"
 		"const vec4 ballVertex = vec4(0.0, 0.0, 0.5, 1.0);"
 		"gl_Position = paddleVertices[gl_VertexID] + offset;"
-		"vs_color = color;"
+		"vs_color = paddleColors[gl_VertexID];"
 		"}"
 	};
 	static const GLchar* paddleFragmentShaderSource[]{
@@ -158,11 +164,11 @@ int main(int argc, char* argv[])
 		"in vec4 vs_color;" // input from the vertex shader
 		"out vec4 color;" // output to the framebuffer
 		"void main(void) {"
-		//"    color = vs_color;"
-		"    color = vec4(sin(gl_FragCoord.x * 0.25) * 0.5 + 0.5,"
-		"                 cos(gl_FragCoord.y * 0.25) * 0.5 + 0.5,"
-		"                 sin(gl_FragCoord.x * 0.15) * cos(gl_FragCoord.y * 0.15),"
-		"                 1.0);"
+		"    color = vs_color;"
+		//"    color = vec4(sin(gl_FragCoord.x * 0.25) * 0.5 + 0.5,"
+		//"                 cos(gl_FragCoord.y * 0.25) * 0.5 + 0.5,"
+		//"                 sin(gl_FragCoord.x * 0.15) * cos(gl_FragCoord.y * 0.15),"
+		//"                 1.0);"
 		"}"
 	};
 	GLint paddleShaderProgram = createShaderProgram(paddleVertexShaderSource, paddleFragmentShaderSource);
